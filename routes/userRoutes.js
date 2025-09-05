@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUsers, deleteUser, toggleBlockUser } = require("../controllers/userController");
+const { getUsers, deleteUser, toggleBlockUser , updateUser } = require("../controllers/userController");
 const { protect, admin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -12,5 +12,7 @@ router.delete("/:id", protect, admin, deleteUser);
 
 // Block/Unblock a user
 router.patch("/:id/block", protect, admin, toggleBlockUser);
+
+router.put("/:id", protect,updateUser);
 
 module.exports = router;

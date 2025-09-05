@@ -20,9 +20,16 @@ const orderSchema = new mongoose.Schema(
 
     subtotal: { type: Number, required: true },
     gst: { type: Number, required: true },
-    platformFeePercent: { type: Number, required: true }, //  added this
+    platformFeePercent: { type: Number, required: true }, 
     platformFee: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
+
+   
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected", "Shipped", "Delivered"],
+      default: "Pending",
+    },
   },
   { timestamps: true }
 );

@@ -33,7 +33,7 @@ const protect = async (req, res, next) => {
 
 // Check if user is admin
 const admin = (req, res, next) => {
-  console.log(req);
+
   if (req.user && req.user.isAdmin) {
     next();
   } else {

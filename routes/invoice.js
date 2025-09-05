@@ -1,6 +1,7 @@
 const express = require("express");
 const PDFDocument = require("pdfkit");
-const Order = require("../models/Order");   
+const Order = require("../models/Order");
+const User = require("../models/User"); // import User model to fetch order owner info
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -9,12 +10,19 @@ router.get("/invoice/:orderId", protect, async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    const order = await Order.findOne({ _id: orderId, userId: req.user._id })
-      .populate("items.productId");
+    // Admins can access any order; users can only access their own
+    const order = await Order.findOne(
+      req.user.isAdmin
+        ? { _id: orderId } // admin: any order
+        : { _id: orderId, userId: req.user._id } // user: only their order
+    ).populate("items.productId");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    // Fetch actual user info for invoice
+    const orderUser = await User.findById(order.userId);
 
     // PDF generation
     const doc = new PDFDocument({ margin: 50 });
@@ -25,8 +33,8 @@ router.get("/invoice/:orderId", protect, async (req, res) => {
     // Header
     doc.fontSize(20).text("INVOICE", { align: "center" });
     doc.moveDown();
-    doc.fontSize(12).text(`Customer: ${req.user.username}`);
-    doc.text(`Email: ${req.user.email}`);
+    doc.fontSize(12).text(`Customer: ${orderUser.username}`);
+    doc.text(`Email: ${orderUser.email}`);
     doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`);
     doc.moveDown();
 
@@ -65,7 +73,11 @@ router.get("/invoice/:orderId", protect, async (req, res) => {
     doc.text(`GST (18%): ${order.gst}`, summaryX, summaryY);
     summaryY += summarySpacing;
 
-    doc.text(`Platform Fee (${order.platformFeePercent}%): ${order.platformFee}`, summaryX, summaryY);
+    doc.text(
+      `Platform Fee (${order.platformFeePercent}%): ${order.platformFee}`,
+      summaryX,
+      summaryY
+    );
     summaryY += summarySpacing;
 
     doc.text("------------------------------------", summaryX, summaryY);

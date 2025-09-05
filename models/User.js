@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     resetToken: String,
     resetTokenExpiry: Date,
     isAdmin: { type: Boolean, default: false },
-    isBlocked: { type: Boolean, default: false }, // 🔴 new field
+    isBlocked: { type: Boolean, default: false }, 
   },
   { timestamps: true }
 );
